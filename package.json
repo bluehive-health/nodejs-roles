@@ -1,0 +1,21 @@
+{
+  "name": "nodejs-roles",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "example": "node example.js"
+  },
+  "keywords": [
+    "roles",
+    "authorization",
+    "permissions",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "Role-based authorization package for Node.js, ported from Meteor roles",
+  "dependencies": {
+    "mongodb": "^6.19.0"
+  }
+}
