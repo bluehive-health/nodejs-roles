@@ -1,7 +1,11 @@
 {
-  "name": "nodejs-roles",
+  "name": "@bluehive-health/nodejs-roles",
   "version": "1.0.0",
   "main": "index.js",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/bluehive-health/nodejs-roles.git"
+    },
   "scripts": {
     "test": "node test.js",
     "example": "node example.js"
@@ -13,7 +17,7 @@
     "mongodb"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "BSD",
   "description": "Role-based authorization package for Node.js, ported from Meteor roles",
   "dependencies": {
     "mongodb": "^6.19.0"
