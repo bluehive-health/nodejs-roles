@@ -58,6 +58,24 @@ class Roles {
   }
 
   /**
+   * Normalize role options, optionally overriding scope via a dedicated arg.
+   * Supports both Meteor-style `scope` string and options objects.
+   * @param {Object|string|number|null|undefined} options
+   * @param {string|null|undefined} scope
+   * @returns {Object}
+   * @private
+   */
+  _normalizeOptionsWithScope(options, scope) {
+    const normalizedOptions = this._normalizeOptions(options);
+
+    if (scope !== undefined) {
+      normalizedOptions.scope = this._normalizeScopeName(scope);
+    }
+
+    return normalizedOptions;
+  }
+
+  /**
    * Normalize scope name
    * @param {string} scopeName
    * @returns {string|null}
@@ -129,8 +147,8 @@ class Roles {
    * @param {string|string[]} roles Role name(s)
    * @param {Object|string} [options] Options or scope
    */
-  async addUsersToRolesAsync(users, roles, options = {}) {
-    options = this._normalizeOptions(options);
+  async addUsersToRolesAsync(users, roles, options = {}, scope) {
+    options = this._normalizeOptionsWithScope(options, scope);
 
     users = Array.isArray(users) ? users : [users];
     roles = Array.isArray(roles) ? roles : [roles];
@@ -215,14 +233,29 @@ class Roles {
    * @param {Object|string} [options] Options or scope
    * @returns {Promise<boolean>}
    */
-  async userIsInRoleAsync(user, roles, options = {}) {
-    const userId = typeof user === 'string' ? user : user._id;
-    options = this._normalizeOptions(options);
+  async userIsInRoleAsync(user, roles, options = {}, scope) {
+    options = this._normalizeOptionsWithScope(options, scope);
+
+    // Ensure array to simplify checks and ignore nullish role inputs.
+    roles = Array.isArray(roles) ? roles : [roles];
+    roles = roles.filter((roleName) => roleName != null);
+
+    if (!roles.length) return false;
+
+    this._checkScopeName(options.scope);
 
     // Set default options
     options = { anyScope: false, ...options };
 
-    roles = Array.isArray(roles) ? roles : [roles];
+    let userId;
+    if (user && typeof user === 'object') {
+      userId = user._id;
+    } else {
+      userId = user;
+    }
+
+    if (!userId) return false;
+    if (typeof userId !== 'string') return false;
 
     const query = {
       'user._id': userId,
@@ -233,7 +266,7 @@ class Roles {
       query.scope = { $in: [options.scope, null] };
     }
 
-    const count = await this.roleAssignmentCollection.countDocuments(query);
+    const count = await this.roleAssignmentCollection.countDocuments(query, { limit: 1 });
     return count > 0;
   }
 

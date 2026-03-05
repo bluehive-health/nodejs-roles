@@ -35,12 +35,13 @@ async function main() {
   // Add hierarchy
   await roles.addRolesToParentAsync('user', 'admin');
 
-  // Assign roles
-  await roles.addUsersToRolesAsync('user123', 'user');
+  // Assign roles (admin inherits editor and user)
+  await roles.addUsersToRolesAsync('user123', 'admin');
 
   // Check permissions
   const isAdmin = await roles.userIsInRoleAsync('user123', 'admin'); // true
-  const userRoles = await roles.getRolesForUserAsync('user123'); // ['user', 'admin']
+  const isUser = await roles.userIsInRoleAsync('user123', 'user'); // true
+  const userRoles = await roles.getRolesForUserAsync('user123'); // ['admin', 'editor', 'user']
 }
 ```
 
@@ -50,10 +51,10 @@ async function main() {
 
 - `createRoleAsync(roleName, options)` - Create a new role
 - `deleteRoleAsync(roleName)` - Delete a role
-- `addUsersToRolesAsync(users, roles, options)` - Add users to roles
+- `addUsersToRolesAsync(users, roles, optionsOrScope, scope?)` - Add users to roles (scope can be a string, in options, or as 4th arg)
 - `removeUsersFromRolesAsync(users, roles, options)` - Remove users from roles
 - `setUserRolesAsync(users, roles, options)` - Set user's roles (replace existing)
-- `userIsInRoleAsync(user, roles, options)` - Check if user has role
+- `userIsInRoleAsync(user, roles, optionsOrScope, scope?)` - Check if user has role (scope can be a string, in options, or as 4th arg)
 - `getRolesForUserAsync(user, options)` - Get user's roles
 - `getUsersInRoleAsync(roles, options)` - Get users with specific roles
 - `getAllRoles()` - Get all defined roles
@@ -82,10 +83,14 @@ Scopes allow you to have independent sets of roles for different contexts (e.g.,
 // Add roles with scopes
 await roles.addUsersToRolesAsync('user123', 'admin', 'company1');
 await roles.addUsersToRolesAsync('user123', 'user', 'company2');
+await roles.addUsersToRolesAsync('user124', 'admin', { scope: 'company1' });
+await roles.addUsersToRolesAsync('user125', 'admin', { ifExists: false }, 'company1');
 
 // Check roles in specific scopes
 await roles.userIsInRoleAsync('user123', 'admin', 'company1'); // true
 await roles.userIsInRoleAsync('user123', 'admin', 'company2'); // false
+await roles.userIsInRoleAsync('user123', 'admin', { scope: 'company1' }); // true
+await roles.userIsInRoleAsync('user123', 'admin', { anyScope: false }, 'company1'); // true
 
 // Check roles across all scopes (global + specified scope)
 await roles.userIsInRoleAsync('user123', 'admin'); // true (checks global scope)
